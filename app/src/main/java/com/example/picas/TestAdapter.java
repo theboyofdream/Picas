@@ -1,84 +1,101 @@
 package com.example.picas;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Function;
 
 public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestViewHolder> {
 
   ArrayList<String> list;
+  ArrayList<String> covers;
   Context context;
-//  View.OnClickListener itemClickListener;
   Function onItemClick;
+  boolean showName;
+  boolean showCount;
+  ArrayList<Integer> count;
   float itemSize;
 
-//  TestAdapter(ArrayList<String> list, Context context, View.OnClickListener itemClickListener){
-  TestAdapter(ArrayList<String> list, Context context, Function onItemClick, float itemSize){
+  TestAdapter(Context context, ArrayList<String> list, ArrayList<String> covers, Function onItemClick, float itemSize,boolean showName,boolean showCount, ArrayList<Integer> count) {
     this.list = list;
     this.context = context;
+    this.covers = covers;
     this.onItemClick = onItemClick;
     this.itemSize = itemSize;
-//    this.itemClickListener = itemClickListener;
+    this.showName = showName;
+    this.showCount = showCount;
+    this.count = count;
   }
 
   @NonNull
   @Override
   public TestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-    LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-    View view = inflater.inflate(R.layout.square_view,parent,false);
-    TestViewHolder viewHolder = new TestViewHolder(view);
+    LayoutInflater inflater = LayoutInflater.from(parent.getContext( ));
+    View view = inflater.inflate(R.layout.square_view, parent, false);
 
-//    int width = parent.getMeasuredWidth() / 3;
-//    viewHolder.card.setMinimumWidth(width);
-
-    return viewHolder;
+    return new TestViewHolder(view);
   }
 
   @Override
   public void onBindViewHolder(@NonNull TestViewHolder holder, int position) {
-    holder.text.setText(list.get(position));
-    holder.card.setMinimumWidth((int)itemSize);
-//    holder.card.setOnClickListener(new View.OnClickListener( ) {
-//      @Override
-//      public void onClick(View v) {
-//        Toast.makeText(context,  list.get(position),Toast.LENGTH_SHORT).show();
-//      }
-//    });
+    int index = holder.getAdapterPosition();
 
-    holder.card.setOnClickListener(new View.OnClickListener( ) {
-      @Override
-      public void onClick(View v) {
-//        TextView t = v.findViewById(R.id.square_view_text);
-        Log.d("DEBUG", v.toString());
-        onItemClick.apply(position);
-//        Log.d("DEBUG",v.toString() );
-      }
-    });
+    if (showName) {
+      String name = list.get(index);
+      String[] parts = name.split("/");
+      ArrayList<String> partsArray = new ArrayList<>(Arrays.asList(parts) );
+      name = partsArray.remove(partsArray.size() -1 );
+      holder.text.setText(name);
+    }else{
+      holder.text.setVisibility(View.GONE);
+    }
+
+    if(showCount){
+      holder.count.setText(String.valueOf(count.get(index)));
+    }else{
+      holder.count.setVisibility(View.GONE);
+    }
+
+    Glide.with(context)
+        .load(new File(covers.get(index)))
+        .apply(RequestOptions.centerCropTransform( ))
+        .into(holder.image);
+    holder.card.setMinimumWidth((int) itemSize);
+
+    holder.card.setOnClickListener(v -> onItemClick.apply(index));
   }
 
   @Override
   public int getItemCount() {
-    return list.size();
+    return list.size( );
   }
 
-  class TestViewHolder extends RecyclerView.ViewHolder{
+  static class TestViewHolder extends RecyclerView.ViewHolder {
     CardView card;
     TextView text;
-    TestViewHolder(View view){
+    TextView count;
+    ImageView image;
+
+    TestViewHolder(View view) {
       super(view);
       this.card = view.findViewById(R.id.square_view_card);
       this.text = view.findViewById(R.id.square_view_text);
+      this.image = view.findViewById(R.id.square_image_view);
+      this.count = view.findViewById(R.id.square_view_file_count);
     }
   }
 

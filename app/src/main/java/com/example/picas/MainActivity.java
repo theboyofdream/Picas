@@ -15,27 +15,26 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 
 public class MainActivity extends AppCompatActivity {
-  public static RecyclerView folders_view, files_view;
-  public static Map<String, ArrayList<String>> data=new HashMap<>(  );
+  public static RecyclerView foldersView, filesView;
   private final String[] permissions_string = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-  private HashMap<String, ArrayList<String>> folders;
-  private HashMap<String, ArrayList<String>> files;
-  private int foldersViewColumnCount = 3, filesViewColumnCount = 2;
+  public int foldersViewColumnCount = 3;
+  public GridLayoutManager gridLayoutManagerForFoldersView;
+  public GridLayoutManager gridLayoutManagerForFilesView;
+  public int filesViewColumnCount = 2;
 
-
-//  public static void onFolderViewClicked(int position){
-//    gridLayoutManager.setSpanCount(1);
-//  }
-
+  /**
+   * @noinspection rawtypes
+   */
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -47,53 +46,56 @@ public class MainActivity extends AppCompatActivity {
     getWindowManager( ).getDefaultDisplay( ).getMetrics(metrics);
 
     int width = metrics.widthPixels;
+    int itemSize = width / foldersViewColumnCount;
 
-    folders_view = findViewById(R.id.foldersView);
+    foldersView = findViewById(R.id.foldersView);
+    gridLayoutManagerForFoldersView = new GridLayoutManager(this, foldersViewColumnCount);
+    foldersView.setLayoutManager(gridLayoutManagerForFoldersView);
 
-    GridLayoutManager gridLayoutManagerForFoldersView = new GridLayoutManager(this, foldersViewColumnCount);
-    folders_view.setLayoutManager(gridLayoutManagerForFoldersView);
-    folders_view.setHasFixedSize(false);
+    filesView = findViewById(R.id.filesView);
+    gridLayoutManagerForFilesView = new GridLayoutManager(this, filesViewColumnCount);
+    filesView.setLayoutManager(gridLayoutManagerForFilesView);
 
-    files_view = findViewById(R.id.filesView);
-    GridLayoutManager gridLayoutManagerForFilesView = new GridLayoutManager(this, filesViewColumnCount);
-    files_view.setLayoutManager(gridLayoutManagerForFilesView);
-    files_view.setHasFixedSize(false);
+    HashMap<String, Set<String>> data = scanImages( );
 
+    ArrayList<String> foldersPath = new ArrayList<>(data.keySet( ));
 
-//    ArrayList<String> imagePaths = getAllImagePaths( );
-    getAllImagePaths( );
-//    for (String path: imagePaths) {
-//      Log.d("paths", path);
-//    }
-//    ImageAdapter imageAdapter = new ImageAdapter(this, imagePaths);
-    ArrayList<String> foldersPath = new ArrayList<>( );
-    for (String folderPath : data.keySet( )) {
-      foldersPath.add(folderPath);
-    }
+    Function onFileViewClicked = index -> null;
 
-    Function onFolderViewClicked = position -> {
+    Function onFolderViewClicked = index -> {
+      foldersViewColumnCount = 1;
       gridLayoutManagerForFoldersView.setSpanCount(1);
 
-//      DisplayMetrics metrics = new DisplayMetrics();
-//      getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//
-//      int height = metrics.heightPixels;
-//      int width = metrics.widthPixels;
-//      gridLayoutManagerForFilesView.setSpanCount(2);
+      ArrayList<String> filesPath = new ArrayList<>(Objects.requireNonNull(data.get(foldersPath.get((int) index))));
 
-      ArrayList<String> filesPath = data.get(foldersPath.get((int) position));
-      TestAdapter filesAdapter = new TestAdapter(filesPath,this,null,width/3);
-      files_view.setAdapter(filesAdapter);
-      files_view.setVisibility(View.VISIBLE);
+      TestAdapter filesAdapter = new TestAdapter(this, filesPath, filesPath, onFileViewClicked, itemSize, false, false, new ArrayList<>(  ));
+      filesView.setAdapter(filesAdapter);
+      filesView.setVisibility(View.VISIBLE);
 
       return null;
     };
 
-//    Set<String> foldersPath = data.keySet( );
-    TestAdapter adapter = new TestAdapter(foldersPath, this, onFolderViewClicked, width / foldersViewColumnCount);
-    folders_view.setAdapter(adapter);
-//    Log.d("count", String.valueOf(adapter.getItemCount( )));
-//    Log.d("count", String.valueOf(imagePaths.size()));
+    ArrayList<String> foldersCover = new ArrayList<>( );
+    ArrayList<Integer> filesCount = new ArrayList<>( );
+    for (String folderPath : foldersPath) {
+      ArrayList<String> files = new ArrayList<>(Objects.requireNonNull(data.get(folderPath)));
+      foldersCover.add(files.get(0));
+      filesCount.add( files.size() );
+    }
+
+    TestAdapter foldersAdapter = new TestAdapter(this, foldersPath, foldersCover, onFolderViewClicked, itemSize, true, true, filesCount);
+    foldersView.setAdapter(foldersAdapter);
+  }
+
+  @Override
+  public void onBackPressed() {
+    int columnCountOfFolder = gridLayoutManagerForFoldersView.getSpanCount( );
+    if (columnCountOfFolder == 3) {
+      super.onBackPressed( );
+      return;
+    }
+    gridLayoutManagerForFoldersView.setSpanCount(3);
+    filesView.setVisibility(View.GONE);
   }
 
   protected void checkPermissions() {
@@ -104,9 +106,9 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  public ArrayList<String> getAllImagePaths() {
+  public HashMap<String, Set<String>> scanImages() {
 
-    ArrayList<String> imagePaths = new ArrayList<>( );
+    HashMap<String, Set<String>> _data_ = new HashMap<>( );
 
     Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
     String[] projection = {MediaStore.MediaColumns.DATA, MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
@@ -117,95 +119,28 @@ public class MainActivity extends AppCompatActivity {
     if (cursor != null) {
 
       int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-//      int loopCount = 0;
-//      while (cursor.moveToNext( ) && loopCount < 100) {
+
       while (cursor.moveToNext( )) {
-        String imagePath = cursor.getString(columnIndex);
-        imagePaths.add(imagePath);
+        String filePath = cursor.getString(columnIndex);
+        String[] parts = filePath.split("/");
+        ArrayList<String> partsArray = new ArrayList<>(Arrays.asList(parts));
+        partsArray.remove(partsArray.size( ) - 1);
+        parts = partsArray.toArray(new String[0]);
+        String folderPath = String.join("/", parts);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-          Path filePath = null;
-          filePath = Paths.get(imagePath);
-          Path folderPath = filePath.getParent( );
-          String filePathString = String.valueOf(filePath);
-          String folderPathString = String.valueOf(folderPath);
-//          folderPath.getFileName();
-//          folders.put(folderPath, imagePaths)
-//          Log.d("PATH", String.valueOf(folderPath));
-//          Log.d("PATH", folderPath.getFileName().toString());
-
-          ArrayList<String> value;
-          if (data.containsKey(folderPathString)) {
-            value = data.get(folderPathString);
-            value.add(filePathString);
-          } else {
-            value = new ArrayList<>( );
-            value.add(filePathString);
-            data.put(folderPathString, value);
-          }
-
-
+        Set<String> filesPath;
+        if (_data_.containsKey(folderPath)) {
+          filesPath = _data_.get(folderPath);
+        } else {
+          filesPath = new HashSet<>( );
         }
-//        loopCount++;
+        assert filesPath != null;
+        filesPath.add(filePath);
+        _data_.put(folderPath, filesPath);
+
       }
       cursor.close( );
     }
-    return imagePaths;
+    return _data_;
   }
 }
-
-//  private void getFolderNamesWithImages() {
-////    FolderAdapter folderAdapter;
-//    RecyclerView recyclerView;
-//    List<String> folderNames = new ArrayList<>();
-//    Set<String> folderNameSet = new HashSet<>();
-//
-//    String[] projection = {MediaStore.Images.Media.DATA};
-//    Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, null);
-//
-//    if (cursor != null) {
-//      int columnIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-//      while (cursor.moveToNext()) {
-//        String imagePath = cursor.getString(columnIndex);
-//        File imageFile = new File(imagePath);
-//        String parentFolder = imageFile.getParent();
-//
-//        if (parentFolder != null) {
-//          folderNameSet.add(parentFolder);
-//        }
-//      }
-//      cursor.close();
-//    }
-//
-//    folderNames.addAll(folderNameSet);
-//
-//    // Set up the RecyclerView
-////    recyclerView.setLayoutManager(new LinearLayoutManager(this));
-////    folderAdapter = new FolderAdapter(this, new ArrayList<>(folderNames));
-////    recyclerView.setAdapter(folderAdapter);
-//  }
-
-
-/**
- * private List<String> getAllImagesPath(){
- * <p>
- * List<String> imagePathList = new ArrayList<>();
- * <p>
- * Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
- * String[] projection = {MediaStore.MediaColumns.DATA,MediaStore.Images.Media.BUCKET_DISPLAY_NAME};
- * Cursor cursor = this.getContentResolver().query(uri, projection,null,null,MediaStore.Images.Media.DATE_MODIFIED + " desc");
- * <p>
- * if(cursor != null){
- * int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
- * while(cursor.moveToNext()){
- * String imagePath = cursor.getString(columnIndex);
- * imagePathList.add(imagePath);
- * //      imagePathList.add(new ImageItem(images_path));
- * Log.d("path",imagePath);
- * }
- * cursor.close();
- * }
- * <p>
- * return imagePathList;
- * }
- */
