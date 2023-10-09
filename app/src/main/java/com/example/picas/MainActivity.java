@@ -1,6 +1,7 @@
 package com.example.picas;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -32,6 +33,9 @@ public class MainActivity extends AppCompatActivity {
   public GridLayoutManager gridLayoutManagerForFilesView;
   public int filesViewColumnCount = 2;
 
+  public HashMap<String,Integer> selectedViews = new HashMap<>(  );
+  public boolean isSelectable = false;
+
   /**
    * @noinspection rawtypes
    */
@@ -59,16 +63,41 @@ public class MainActivity extends AppCompatActivity {
     HashMap<String, Set<String>> data = scanImages( );
 
     ArrayList<String> foldersPath = new ArrayList<>(data.keySet( ));
+    ArrayList<String> filesPath = new ArrayList<>( );
 
-    Function onFileViewClicked = index -> null;
+    Function onFileViewClicked = index -> {
+      int i = (int) index;
+      if (filesPath.size( ) > 0 && !isSelectable) {
+        // Toast.makeText(this, filesPath.get((Integer) index), Toast.LENGTH_SHORT).show( );
+
+        Intent fullScreenFileIntent = new Intent(this, FullScreenFileView.class);
+        fullScreenFileIntent.putExtra("files", filesPath);
+        fullScreenFileIntent.putExtra("index", i);
+        startActivity(fullScreenFileIntent);
+      } else if (isSelectable) {
+        selectedViews.put(filesPath.get(i), i);
+//      filesView.notifyAll();
+//      foldersView.notifyAll();
+      }
+
+      return null;
+    };
+
+    Function onLongClick = index ->{
+      isSelectable = true;
+      filesView.notifyAll();
+      foldersView.notifyAll();
+      return null;
+    };
 
     Function onFolderViewClicked = index -> {
       foldersViewColumnCount = 1;
       gridLayoutManagerForFoldersView.setSpanCount(1);
 
-      ArrayList<String> filesPath = new ArrayList<>(Objects.requireNonNull(data.get(foldersPath.get((int) index))));
+      filesPath.clear( );
+      filesPath.addAll(Objects.requireNonNull(data.get(foldersPath.get((int) index))));
 
-      TestAdapter filesAdapter = new TestAdapter(this, filesPath, filesPath, onFileViewClicked, itemSize, false, false, new ArrayList<>(  ));
+      TestAdapter filesAdapter = new TestAdapter(this, filesPath, filesPath, onFileViewClicked,onLongClick, itemSize, false, false, new ArrayList<>( ), isSelectable);
       filesView.setAdapter(filesAdapter);
       filesView.setVisibility(View.VISIBLE);
 
@@ -80,17 +109,17 @@ public class MainActivity extends AppCompatActivity {
     for (String folderPath : foldersPath) {
       ArrayList<String> files = new ArrayList<>(Objects.requireNonNull(data.get(folderPath)));
       foldersCover.add(files.get(0));
-      filesCount.add( files.size() );
+      filesCount.add(files.size( ));
     }
 
-    TestAdapter foldersAdapter = new TestAdapter(this, foldersPath, foldersCover, onFolderViewClicked, itemSize, true, true, filesCount);
+    TestAdapter foldersAdapter = new TestAdapter(this, foldersPath, foldersCover, onFolderViewClicked,onLongClick, itemSize, true, true, filesCount, isSelectable);
     foldersView.setAdapter(foldersAdapter);
   }
 
   @Override
   public void onBackPressed() {
-    int columnCountOfFolder = gridLayoutManagerForFoldersView.getSpanCount( );
-    if (columnCountOfFolder == 3) {
+    int foldersViewColumnCount = gridLayoutManagerForFoldersView.getSpanCount( );
+    if (foldersViewColumnCount == 3) {
       super.onBackPressed( );
       return;
     }
