@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -26,8 +27,18 @@ import java.util.function.Function;
 
 
 public class MainActivity extends AppCompatActivity {
-    public static RecyclerView foldersView, filesView;
+
     private final String[] permissions_string = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    private RecyclerView folders_recyclerView, files_recyclerView;
+    private GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
+    private final int maximum_column_count = 4;
+    private int folders_column_count, files_column_count, current_column_count = maximum_column_count - 1;
+    public Function folder_view_onClick, file_view_onClick, folder_view_onLongPress, file_view_onLongPress;
+    private boolean is_view_selectable = false;
+    private HashMap<String, Integer> selected_views = new HashMap<>();
+
+    public static RecyclerView foldersView, filesView;
+
     public int foldersViewColumnCount = 4;
     public GridLayoutManager gridLayoutManagerForFoldersView;
     public GridLayoutManager gridLayoutManagerForFilesView;
@@ -116,6 +127,40 @@ public class MainActivity extends AppCompatActivity {
         foldersView.setAdapter(foldersAdapter);
     }
 
+    private void init() {
+
+    }
+
+
+    private enum Layout_Variant{
+        TYPE_1,
+        TYPE_2,
+        TYPE_3
+    }
+    private void change_layout(@NonNull Layout_Variant layout_variant) {
+        switch (layout_variant) {
+            case TYPE_1: { // 4 folders 0 files
+                folders_recyclerView.setVisibility((View.VISIBLE));
+                files_recyclerView.setVisibility(View.GONE);
+                folders_column_count = current_column_count;
+                files_column_count = 1;
+            }
+            case TYPE_2: { // 1 folders 3 files
+                folders_recyclerView.setVisibility((View.VISIBLE));
+                files_recyclerView.setVisibility(View.VISIBLE);
+                folders_column_count = 1;
+                files_column_count = current_column_count - 1;
+            }
+            case TYPE_3: { // 0 folders 4 files
+                folders_recyclerView.setVisibility((View.GONE));
+                files_recyclerView.setVisibility(View.VISIBLE);
+                folders_column_count = 1;
+                files_column_count = current_column_count;
+            }
+        }
+    }
+
+
     @Override
     public void onBackPressed() {
         int foldersViewColumnCount = gridLayoutManagerForFoldersView.getSpanCount();
@@ -173,3 +218,4 @@ public class MainActivity extends AppCompatActivity {
         return _data_;
     }
 }
+
