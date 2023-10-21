@@ -16,14 +16,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Picas"
         tools:targetApi="31">
+<!--        <activity-->
+<!--            android:name=".Gestures"-->
+<!--            android:exported="false" /> -->
         <activity
-            android:name=".Gestures"
+            android:name=".MainActivity"
             android:exported="false" />
         <activity
             android:name=".FullScreenFileView"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".Gestures"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
