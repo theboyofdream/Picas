@@ -7,10 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,37 +64,37 @@ public class MainActivity extends AppCompatActivity {
         files_gridLayoutManager = new GridLayoutManager(this, files_column_count);
         files_recyclerView.setLayoutManager(files_gridLayoutManager);
 
-        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            /**
-             * @param rv
-             * @param e  MotionEvent describing the touch event. All coordinates are in
-             *           the RecyclerView's coordinate system.
-             * @return
-             */
-            @Override
-            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-                return false;
-            }
-
-            /**
-             * @param rv
-             * @param e  MotionEvent describing the touch event. All coordinates are in
-             *           the RecyclerView's coordinate system.
-             */
-            @Override
-            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-
-            }
-
-            /**
-             * @param disallowIntercept True if the child does not want the parent to
-             *                          intercept touch events.
-             */
-            @Override
-            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-
-            }
-        });
+//        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+//            /**
+//             * @param rv
+//             * @param e  MotionEvent describing the touch event. All coordinates are in
+//             *           the RecyclerView's coordinate system.
+//             * @return
+//             */
+//            @Override
+//            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+//                return false;
+//            }
+//
+//            /**
+//             * @param rv
+//             * @param e  MotionEvent describing the touch event. All coordinates are in
+//             *           the RecyclerView's coordinate system.
+//             */
+//            @Override
+//            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+//
+//            }
+//
+//            /**
+//             * @param disallowIntercept True if the child does not want the parent to
+//             *                          intercept touch events.
+//             */
+//            @Override
+//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+//
+//            }
+//        });
 
         // init folder adapter functions
         folder_adapter_functions.put("on_folder_click", folder_path -> {

@@ -90,9 +90,9 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
         }
 
 
-//        holder.container.setOnClickListener(v -> {
-//            Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path);
-//        });
+        holder.container.setOnClickListener(v -> {
+            Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path);
+        });
 //        holder.container.setOnLongClickListener(v -> {
 //            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
 //            return true;
