@@ -78,24 +78,24 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 //        Log.d("DEBUG", folder_cover_path);
 //        holder.container.setOnClickListener(e->onFolderClick(folder_path));
 
-        if (MainActivity.selection_on) {
-            holder.checkBox.setVisibility(View.VISIBLE);
-            if (MainActivity.selected_list.contains(folder_path)) {
-                holder.checkBox.setChecked(true);
-            } else {
-                holder.checkBox.setChecked(false);
-            }
-        } else {
-            holder.checkBox.setVisibility(View.GONE);
-        }
 
 
         holder.container.setOnClickListener(v -> {
+//            if (MainActivity.selection_on) {
+//                holder.checkBox.setVisibility(View.VISIBLE);
+//                if (MainActivity.selected_list.contains(folder_path)) {
+//                    holder.checkBox.setChecked(true);
+//                } else {
+//                    holder.checkBox.setChecked(false);
+//                }
+//            } else {
+//                holder.checkBox.setVisibility(View.GONE);
+//            }
             Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path);
         });
 //        holder.container.setOnLongClickListener(v -> {
 //            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
-//            return true;
+//            return false;
 //        });
     }
     @Override

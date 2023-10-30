@@ -1,6 +1,7 @@
 package com.example.picas;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -9,7 +10,6 @@ import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Observable;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -64,47 +65,14 @@ public class MainActivity extends AppCompatActivity {
         files_gridLayoutManager = new GridLayoutManager(this, files_column_count);
         files_recyclerView.setLayoutManager(files_gridLayoutManager);
 
-//        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-//            /**
-//             * @param rv
-//             * @param e  MotionEvent describing the touch event. All coordinates are in
-//             *           the RecyclerView's coordinate system.
-//             * @return
-//             */
-//            @Override
-//            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-//                return false;
-//            }
-//
-//            /**
-//             * @param rv
-//             * @param e  MotionEvent describing the touch event. All coordinates are in
-//             *           the RecyclerView's coordinate system.
-//             */
-//            @Override
-//            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-//
-//            }
-//
-//            /**
-//             * @param disallowIntercept True if the child does not want the parent to
-//             *                          intercept touch events.
-//             */
-//            @Override
-//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-//
-//            }
-//        });
-
-        // init folder adapter functions
         folder_adapter_functions.put("on_folder_click", folder_path -> {
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
-            if (current_layout_variant == "TYPE 1") {
-                if (MainActivity.selection_on) {
-                    if (MainActivity.selected_list.contains(folder_path)) {
-                        MainActivity.selected_list.remove(folder_path);
+            if (current_layout_variant.equals("TYPE 1")) {
+                if (selection_on) {
+                    if (selected_list.contains(folder_path)) {
+                        selected_list.remove(folder_path);
                     } else {
-                        MainActivity.selected_list.add(folder_path);
+                        selected_list.add(folder_path);
                     }
                     return null;
                 }
@@ -123,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         folder_adapter_functions.put("on_long_press", folder_path -> {
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
-            if (current_layout_variant == "TYPE 1") {
+            if (current_layout_variant.equals("TYPE 1")) {
                 if (!selection_on) {
                     MainActivity.selection_on = true;
                     MainActivity.selected_list.add(folder_path);
@@ -132,6 +100,14 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         });
+
+        files_adapter_functions.put("on_file_click", files_path->{
+            Intent intent = new Intent();
+//            startActivity();
+            return null;
+        });
+
+
 
         update_item_size();
 
@@ -148,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.item_size = width / folders_column_count;
     }
 
-    @NonNull
     private void change_layout(String layout_variant) {
         switch (layout_variant) {
             case "TYPE 1": {
@@ -188,10 +163,10 @@ public class MainActivity extends AppCompatActivity {
         files_recyclerView.setAdapter(files_adapter);
     }
 
-    private void load_image() {
-        ArrayList<String> folders_path = new ArrayList<>();
-        ArrayList<String> files_path = new ArrayList<>();
-    }
+//    private void load_image() {
+//        ArrayList<String> folders_path = new ArrayList<>();
+//        ArrayList<String> files_path = new ArrayList<>();
+//    }
 
     protected void checkPermissions() {
         for (String permission_str : permissions_string) {
