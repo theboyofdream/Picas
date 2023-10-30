@@ -58,7 +58,7 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestViewHolder
   @Override
   public TestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
     LayoutInflater inflater = LayoutInflater.from(parent.getContext( ));
-    View view = inflater.inflate(R.layout.square_view, parent, false);
+    View view = inflater.inflate(R.layout.folder_view, parent, false);
 
     return new TestViewHolder(view);
   }

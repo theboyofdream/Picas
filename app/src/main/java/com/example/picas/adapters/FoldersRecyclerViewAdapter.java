@@ -16,40 +16,40 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.picas.MainActivity;
 import com.example.picas.R;
-import com.example.picas.databinding.SquareViewBinding;
+import com.example.picas.databinding.FolderViewBinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Set;
-
-import kotlin.Function;
+import java.util.function.Function;
 
 public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecyclerViewAdapter.ViewHolder> {
     Context context;
     HashMap<String, Set<String>> data;
     ArrayList<String> folders_path;
-//    HashMap<String, Function> functions;
-    Function<String> onFolderClick;
+    HashMap<String, Function<String, Void>> functions;
 
-    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, Function<String> onFolderClick){
+    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, HashMap<String, Function<String, Void>> functions) {
         this.context = context;
         this.data = data;
         this.folders_path = new ArrayList<>(data.keySet());
-        this.onFolderClick=onFolderClick;
+        this.functions = functions;
     }
+
     @NonNull
     @Override
-    public FoldersRecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext( ));
-        View view = inflater.inflate(R.layout.square_view, parent, false);
+    public FoldersRecyclerViewAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View view = inflater.inflate(R.layout.folder_view, parent, false);
 
         return new FoldersRecyclerViewAdapter.ViewHolder(view);
     }
 
+    @NonNull
     @Override
-    public void onBindViewHolder(@NonNull FoldersRecyclerViewAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(FoldersRecyclerViewAdapter.ViewHolder holder, int position) {
         int i = holder.getAdapterPosition();
 
         String folder_path = folders_path.get(i);
@@ -57,7 +57,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 
         String[] parts = folder_path.split("/");
         ArrayList<String> partsArray = new ArrayList<>(Arrays.asList(parts));
-        String folder_name = partsArray.remove(partsArray.size( ) - 1);
+        String folder_name = partsArray.remove(partsArray.size() - 1);
 
         String files_count = String.valueOf(files.size());
         String folder_cover_path = files.get(0);
@@ -67,7 +67,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 
         Glide.with(context)
                 .load(folder_cover_path)
-                .centerCrop( )
+                .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .override((int) MainActivity.item_size)
                 .into(holder.cover);
@@ -76,24 +76,43 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 //        Log.d("DEBUG", files_count);
 //        Log.d("DEBUG", folder_path);
 //        Log.d("DEBUG", folder_cover_path);
-        holder.container.setOnClickListener(e->onFolderClick(folder_path));
-    }
+//        holder.container.setOnClickListener(e->onFolderClick(folder_path));
 
+        if (MainActivity.selection_on) {
+            holder.checkBox.setVisibility(View.VISIBLE);
+            if (MainActivity.selected_list.contains(folder_path)) {
+                holder.checkBox.setChecked(true);
+            } else {
+                holder.checkBox.setChecked(false);
+            }
+        } else {
+            holder.checkBox.setVisibility(View.GONE);
+        }
+
+
+//        holder.container.setOnClickListener(v -> {
+//            Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path);
+//        });
+//        holder.container.setOnLongClickListener(v -> {
+//            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
+//            return true;
+//        });
+    }
     @Override
     public int getItemCount() {
         return data.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder{
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         CardView container;
         TextView name;
         TextView counts;
         ImageView cover;
         CheckBox checkBox;
 
-        ViewHolder(View view){
+        ViewHolder(View view) {
             super(view);
-            SquareViewBinding binding = SquareViewBinding.bind(view);
+            FolderViewBinding binding = FolderViewBinding.bind(view);
             container = binding.squareViewCard;
             name = binding.squareViewText;
             counts = binding.squareViewFileCount;

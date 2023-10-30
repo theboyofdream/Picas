@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -16,7 +15,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.picas.MainActivity;
 import com.example.picas.R;
-import com.example.picas.databinding.SquareViewBinding;
+import com.example.picas.databinding.FileViewBinding;
 
 import java.util.ArrayList;
 
@@ -33,7 +32,7 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
     @Override
     public FilesRecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext( ));
-        View view = inflater.inflate(R.layout.square_view, parent, false);
+        View view = inflater.inflate(R.layout.file_view, parent, false);
 
         return new ViewHolder(view);
     }
@@ -57,17 +56,13 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         CardView container;
-        TextView name;
-        TextView counts;
         ImageView cover;
         CheckBox checkBox;
 
         ViewHolder(View view){
             super(view);
-            SquareViewBinding binding = SquareViewBinding.bind(view);
+            FileViewBinding binding = FileViewBinding.bind(view);
             container = binding.squareViewCard;
-            name = binding.squareViewText;
-            counts = binding.squareViewFileCount;
             cover = binding.squareImageView;
             checkBox = binding.squareViewCheckBox;
         }

@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".FullScreenFileView">
 
-    <ImageView
-        android:id="@+id/fullScreenItemView"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pager_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

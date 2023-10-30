@@ -23,11 +23,11 @@ public class FullScreenFileView extends AppCompatActivity {
     ArrayList<String> files = parameters.getStringArrayListExtra("files");
     int index = parameters.getIntExtra("index",0);
 
-    ImageView fullScreenView = findViewById(R.id.fullScreenItemView);
-    Glide.with(this)
-        .load(new File(files.get(index)))
-        .apply(RequestOptions.centerInsideTransform())
-        .into(fullScreenView);
+//    ImageView fullScreenView = findViewById(R.id.fullScreenItemView);
+//    Glide.with(this)
+//        .load(new File(files.get(index)))
+//        .apply(RequestOptions.centerInsideTransform())
+//        .into(fullScreenView);
 
   }
 }

@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,15 +38,16 @@ public class MainActivity extends AppCompatActivity {
     public RecyclerView folders_recyclerView, files_recyclerView;
     public GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
     public final int maximum_column_count = 4;
-    public int current_column_count = maximum_column_count - 1, folders_column_count, files_column_count;
-    //    public Function folder_view_onClick, file_view_onClick, folder_view_onLongPress, file_view_onLongPress;
-//    public static HashMap<String, Integer> selected_views = new HashMap<>();
-//    public static boolean selection_on = false;
+    public int current_column_count = maximum_column_count - 1, folders_column_count = current_column_count, files_column_count = 1;
     private ActivityMainBinding activityMainBinding;
     private HashMap<String, Set<String>> data;
     public static int item_size;
     public static boolean selection_on = false;
     public static Set<String> selected_list = new HashSet<>();
+    public HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
+    //    public Set<Function> folder_adapter_functions = new HashSet<>();
+    public HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
+    private String current_layout_variant = "TYPE 1";
 
 
     @Override
@@ -54,30 +58,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(activityMainBinding.getRoot());
 
         checkPermissions();
-        // init layout
-        init_layout();
-        MainActivity.item_size = getItemSize();
-
-
-        data = scanImages();
-        load_folders_in_recyclerView(data);
-
-//        change_layout(Layout_Variant.TYPE_1);
-    }
-
-    private int getItemSize() {
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
-        int width = metrics.widthPixels;
-
-        return width / folders_column_count;
-    }
-
-    public void init_layout() {
-        folders_column_count = current_column_count;
-        files_column_count = 1;
-
+        // recycler view
         folders_recyclerView = activityMainBinding.foldersView;
         folders_gridLayoutManager = new GridLayoutManager(MainActivity.this, folders_column_count);
         folders_recyclerView.setLayoutManager(folders_gridLayoutManager);
@@ -85,61 +66,131 @@ public class MainActivity extends AppCompatActivity {
         files_recyclerView = activityMainBinding.filesView;
         files_gridLayoutManager = new GridLayoutManager(this, files_column_count);
         files_recyclerView.setLayoutManager(files_gridLayoutManager);
-//        change_layout(Layout_Variant.TYPE_1);
-//        load_folders_in_recyclerView(data);
+
+        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            /**
+             * @param rv
+             * @param e  MotionEvent describing the touch event. All coordinates are in
+             *           the RecyclerView's coordinate system.
+             * @return
+             */
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                return false;
+            }
+
+            /**
+             * @param rv
+             * @param e  MotionEvent describing the touch event. All coordinates are in
+             *           the RecyclerView's coordinate system.
+             */
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+
+            }
+
+            /**
+             * @param disallowIntercept True if the child does not want the parent to
+             *                          intercept touch events.
+             */
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
+
+        // init folder adapter functions
+        folder_adapter_functions.put("on_folder_click", folder_path -> {
+//            Log.d("DEBUG: on long press", String.valueOf(selection_on));
+            if (current_layout_variant == "TYPE 1") {
+                if (MainActivity.selection_on) {
+                    if (MainActivity.selected_list.contains(folder_path)) {
+                        MainActivity.selected_list.remove(folder_path);
+                    } else {
+                        MainActivity.selected_list.add(folder_path);
+                    }
+                    return null;
+                }
+
+                ArrayList<String> folders_path = new ArrayList<>(data.keySet());
+                int folder_path_position = folders_path.indexOf(folder_path);
+                if (folder_path_position >= 0) {
+                    folders_recyclerView.scrollToPosition(folder_path_position);
+                }
+                change_layout("TYPE 2");
+            }
+            load_files_in_recyclerView(folder_path);
+
+            return null;
+        });
+        folder_adapter_functions.put("on_long_press", folder_path -> {
+//            Log.d("DEBUG: on long press", String.valueOf(selection_on));
+//            Log.d("DEBUG: on long press", String.valueOf(selection_on));
+            if (current_layout_variant == "TYPE 1") {
+                if (!selection_on) {
+                    MainActivity.selection_on = true;
+                    MainActivity.selected_list.add(folder_path);
+//                    folders_recyclerView.notifyAll();
+                }
+            }
+            return null;
+        });
+
+        update_item_size();
+
+        data = scan_images();
+        load_folders_in_recyclerView(data);
     }
 
-    private enum Layout_Variant {
-        TYPE_1,
-        TYPE_2,
-        TYPE_3
+    private void update_item_size() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+        int width = metrics.widthPixels;
+
+        MainActivity.item_size = width / folders_column_count;
     }
 
-    private void change_layout(@NonNull Layout_Variant layout_variant) {
+    @NonNull
+    private void change_layout(String layout_variant) {
         switch (layout_variant) {
-            case TYPE_1: { // 4 folders 0 files
+            case "TYPE 1": {
                 folders_column_count = current_column_count;
                 files_column_count = 1;
+                folders_gridLayoutManager.setSpanCount(folders_column_count);
                 folders_recyclerView.setVisibility(View.VISIBLE);
+                files_gridLayoutManager.setSpanCount(files_column_count);
                 files_recyclerView.setVisibility(View.GONE);
+                current_layout_variant = "TYPE 1";
+                break;
             }
-            case TYPE_2: { // 1 folders 3 files
-                folders_column_count = 1;
-                files_column_count = current_column_count - 1;
-                folders_recyclerView.setVisibility(View.VISIBLE);
-                files_recyclerView.setVisibility(View.VISIBLE);
-            }
-            case TYPE_3: { // 0 folders 4 files
-                folders_column_count = 1;
-                files_column_count = current_column_count;
-                folders_recyclerView.setVisibility(View.GONE);
-                files_recyclerView.setVisibility(View.VISIBLE);
+            case "TYPE 2": {
+                if (folders_column_count != 1) {
+                    folders_column_count = 1;
+                    files_column_count = current_column_count - 1;
+                    folders_gridLayoutManager.setSpanCount(folders_column_count);
+                    folders_recyclerView.setVisibility(View.VISIBLE);
+                    files_gridLayoutManager.setSpanCount(files_column_count);
+                    files_recyclerView.setVisibility(View.VISIBLE);
+                }
+                current_layout_variant = "TYPE 2";
+                break;
             }
         }
     }
 
-    public void load_folders_in_recyclerView(HashMap<String, Set<String>> data) {
-        FoldersRecyclerViewAdapter folder_adapter = new FoldersRecyclerViewAdapter(this, data, load_files_in_recyclerView);
+    private void load_folders_in_recyclerView(HashMap<String, Set<String>> data) {
+        FoldersRecyclerViewAdapter folder_adapter = new FoldersRecyclerViewAdapter(this, data, folder_adapter_functions);
         folders_recyclerView.setAdapter(folder_adapter);
     }
 
-    public Function load_files_in_recyclerView = (folder_path -> {
+    private void load_files_in_recyclerView(String folder_path) {
         ArrayList<String> files_path = new ArrayList<>(Objects.requireNonNull(data.get(folder_path)));
 
         FilesRecyclerViewAdapter files_adapter = new FilesRecyclerViewAdapter(this, files_path);
         files_recyclerView.setAdapter(files_adapter);
-    });
-
-    public interface FunctionsInterface {
-        void load_files_in_recyclerView(String folder_path);
     }
 
-    //    public void load_files_in_recyclerView(String folder_path){
-//        ArrayList<String> files_path = new ArrayList<>(Objects.requireNonNull(data.get(folder_path)));
-//
-//        FilesRecyclerViewAdapter files_adapter = new FilesRecyclerViewAdapter(this,files_path);
-//        files_recyclerView.setAdapter(files_adapter);
-//    }
     private void load_image() {
         ArrayList<String> folders_path = new ArrayList<>();
         ArrayList<String> files_path = new ArrayList<>();
@@ -153,7 +204,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public HashMap<String, Set<String>> scanImages() {
+    @Override
+    public void onBackPressed() {
+        if (selection_on) {
+            MainActivity.selection_on = false;
+            MainActivity.selected_list.clear();
+            return;
+        }
+        switch (current_layout_variant) {
+            case "TYPE 1": {
+                super.onBackPressed();
+                break;
+            }
+            case "TYPE 2": {
+                change_layout("TYPE 1");
+                break;
+            }
+        }
+    }
+
+    public HashMap<String, Set<String>> scan_images() {
 
         HashMap<String, Set<String>> _data_ = new HashMap<>();
 
@@ -192,4 +262,3 @@ public class MainActivity extends AppCompatActivity {
         return _data_;
     }
 }
-
