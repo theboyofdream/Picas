@@ -8,8 +8,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -31,22 +36,22 @@ import java.util.Set;
 import java.util.function.Function;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ActionMode.Callback {
 
     private final String[] permissions_string = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    public RecyclerView folders_recyclerView, files_recyclerView;
-    public GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
-    public final int maximum_column_count = 4;
-    public int current_column_count = maximum_column_count - 1, folders_column_count = current_column_count, files_column_count = 1;
+    private RecyclerView folders_recyclerView, files_recyclerView;
+    private GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
+    private final int maximum_column_count = 4;
+    private int current_column_count = maximum_column_count - 1, folders_column_count = current_column_count, files_column_count = 1;
     private ActivityMainBinding activityMainBinding;
     private HashMap<String, Set<String>> data;
-//    public static int item_size;
-    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
-    public static boolean selection_on = false;
-    public static Set<String> selected_list = new HashSet<>();
-    public HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
+    private int item_size;
+//    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
+    private boolean selection_on = false;
+    private Set<String> selected_list = new HashSet<>();
+    private HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
     //    public Set<Function> folder_adapter_functions = new HashSet<>();
-    public HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
+    private HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
     private String current_layout_variant = "TYPE 1";
 
 
@@ -95,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
             if (current_layout_variant.equals("TYPE 1")) {
                 if (!selection_on) {
-                    MainActivity.selection_on = true;
-                    MainActivity.selected_list.add(folder_path);
+                    this.selection_on = true;
+                    this.selected_list.add(folder_path);
 //                    folders_recyclerView.notifyAll();
                 }
             }
@@ -113,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
         update_item_size();
 
-        data = scan_images();
+        this.data = scan_images();
         load_folders_in_recyclerView(data);
     }
 
@@ -123,9 +128,9 @@ public class MainActivity extends AppCompatActivity {
 
         int width = metrics.widthPixels;
 
-//        MainActivity.item_size = width / folders_column_count;
-        MainActivity.item_size.setValue(width / folders_column_count);
-        MainActivity.item_size.notifyAll();
+        this.item_size = width / folders_column_count;
+//        item_size.setValue(width / folders_column_count);
+//        item_size.notifyAll();
 
     }
 
@@ -157,14 +162,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void load_folders_in_recyclerView(HashMap<String, Set<String>> data) {
-        FoldersRecyclerViewAdapter folder_adapter = new FoldersRecyclerViewAdapter(this, data, folder_adapter_functions);
+        FoldersRecyclerViewAdapter folder_adapter = new FoldersRecyclerViewAdapter(this, data,folder_adapter_functions,item_size);
         folders_recyclerView.setAdapter(folder_adapter);
+
+        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+                switch (e.getAction()){
+//                    case MotionEvent
+                }
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
     }
 
     private void load_files_in_recyclerView(String folder_path) {
         ArrayList<String> files_path = new ArrayList<>(Objects.requireNonNull(data.get(folder_path)));
 
-        FilesRecyclerViewAdapter files_adapter = new FilesRecyclerViewAdapter(this, files_path);
+        FilesRecyclerViewAdapter files_adapter = new FilesRecyclerViewAdapter(this, files_path,item_size);
         files_recyclerView.setAdapter(files_adapter);
     }
 
@@ -184,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (selection_on) {
-            MainActivity.selection_on = false;
-            MainActivity.selected_list.clear();
+            this.selection_on = false;
+            this.selected_list.clear();
             return;
         }
         switch (current_layout_variant) {
@@ -237,5 +261,25 @@ public class MainActivity extends AppCompatActivity {
             cursor.close();
         }
         return _data_;
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+        return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        return false;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode) {
+
     }
 }

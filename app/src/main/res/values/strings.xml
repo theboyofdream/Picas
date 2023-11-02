@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Picas</string>
+    <string name="app_name" translatable="false">Picas</string>
+
+    <integer name="bytes_in_kilobyte">1024</integer>
+    <integer name="bytes_in_megabyte">1048576</integer>
+    <integer name="bytes_in_gigabyte">1073741824</integer>
 </resources>

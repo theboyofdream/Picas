@@ -30,12 +30,14 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
     HashMap<String, Set<String>> data;
     ArrayList<String> folders_path;
     HashMap<String, Function<String, Void>> functions;
+    int item_size;
 
-    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, HashMap<String, Function<String, Void>> functions) {
+    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, HashMap<String, Function<String, Void>> functions, int item_size) {
         this.context = context;
         this.data = data;
         this.folders_path = new ArrayList<>(data.keySet());
         this.functions = functions;
+        this.item_size = item_size;
     }
 
     @NonNull
@@ -70,7 +72,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                .override((int) MainActivity.item_size)
-                .override((int) MainActivity.item_size.getValue())
+                .override(item_size)
                 .into(holder.cover);
 
 //        Log.d("DEBUG", folder_name);

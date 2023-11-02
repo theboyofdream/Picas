@@ -22,10 +22,12 @@ import java.util.ArrayList;
 public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecyclerViewAdapter.ViewHolder> {
     Context context;
     ArrayList<String> files_path;
+    int item_size;
 
-    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path){
+    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path,int item_size){
         this.context = context;
         this.files_path = files_path;
+        this.item_size = item_size;
     }
 
     @NonNull
@@ -46,7 +48,7 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                .override((int) MainActivity.item_size)
-                .override((int) MainActivity.item_size.getValue())
+                .override(item_size)
                 .into(holder.cover);
     }
 
