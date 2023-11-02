@@ -13,6 +13,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -39,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
     public int current_column_count = maximum_column_count - 1, folders_column_count = current_column_count, files_column_count = 1;
     private ActivityMainBinding activityMainBinding;
     private HashMap<String, Set<String>> data;
-    public static int item_size;
+//    public static int item_size;
+    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
     public static boolean selection_on = false;
     public static Set<String> selected_list = new HashSet<>();
     public HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
@@ -121,7 +123,10 @@ public class MainActivity extends AppCompatActivity {
 
         int width = metrics.widthPixels;
 
-        MainActivity.item_size = width / folders_column_count;
+//        MainActivity.item_size = width / folders_column_count;
+        MainActivity.item_size.setValue(width / folders_column_count);
+        MainActivity.item_size.notifyAll();
+
     }
 
     private void change_layout(String layout_variant) {

@@ -69,7 +69,8 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
                 .load(folder_cover_path)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .override((int) MainActivity.item_size)
+//                .override((int) MainActivity.item_size)
+                .override((int) MainActivity.item_size.getValue())
                 .into(holder.cover);
 
 //        Log.d("DEBUG", folder_name);

@@ -45,7 +45,8 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
                 .load(files_path.get(i))
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .override((int) MainActivity.item_size)
+//                .override((int) MainActivity.item_size)
+                .override((int) MainActivity.item_size.getValue())
                 .into(holder.cover);
     }
 
