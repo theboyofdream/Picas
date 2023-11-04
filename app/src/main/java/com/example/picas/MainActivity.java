@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     private int item_size;
 //    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
     private boolean selection_on = false;
+    private ActionMode action_mode;
     private Set<String> selected_list = new HashSet<>();
     private HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
     //    public Set<Function> folder_adapter_functions = new HashSet<>();
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 //            startActivity();
             return null;
         });
+
 
 
 

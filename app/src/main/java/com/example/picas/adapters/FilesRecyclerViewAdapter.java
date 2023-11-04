@@ -56,6 +56,10 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
     public int getItemCount() {
         return files_path.size();
     }
+    public void setSelectedFiles(ArrayList<String> files_path){
+        this.files_path = files_path;
+        notifyDataSetChanged();
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         CardView container;

@@ -105,7 +105,10 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
     public int getItemCount() {
         return data.size();
     }
-
+    public void setSelectedFiles(ArrayList<String> folders_path){
+        this.folders_path = folders_path;
+        notifyDataSetChanged();
+    }
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CardView container;
         TextView name;
