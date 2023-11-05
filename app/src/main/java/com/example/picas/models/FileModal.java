@@ -4,21 +4,29 @@ import androidx.annotation.NonNull;
 
 import com.example.picas.R;
 
+import java.io.File;
 import java.util.Date;
 
 public class FileModal {
     public String name, path;
     public FileTypes type;
 //    public FileExtensions extensions;
-    public int sizeInBytes;
-    public Date lastModifiedDate;
+    public long sizeInBytes;
+    public long lastModifiedDate;
 
 //    public void setName(String file_name) {
 //        this.name = file_name;
 //    }
-    public void setPath(String file_path) {
-        this.path = file_path;
+    public FileModal(String path){
+        File file = new File(path);
+        this.name = file.getName();
+        this.path = file.getAbsolutePath();
+        this.sizeInBytes = file.length();
+        this.lastModifiedDate = file.lastModified();
     }
+//    public void setPath(String file_path) {
+//        this.path = file_path;
+//    }
 
 //    public void setType(FileTypes file_type) {
 //        this.type = file_type;

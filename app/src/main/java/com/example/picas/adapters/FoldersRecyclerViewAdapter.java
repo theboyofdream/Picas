@@ -17,6 +17,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.picas.MainActivity;
 import com.example.picas.R;
 import com.example.picas.databinding.FolderViewBinding;
+import com.example.picas.models.FolderModal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +30,9 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
     Context context;
     HashMap<String, Set<String>> data;
     ArrayList<String> folders_path;
+    ArrayList<FolderModal> folders = new ArrayList<>();
+    ArrayList<String> selectedFolders = new ArrayList<>();
+    private Boolean selectionOn = false;
     HashMap<String, Function<String, Void>> functions;
     int item_size;
 
@@ -38,6 +42,10 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
         this.folders_path = new ArrayList<>(data.keySet());
         this.functions = functions;
         this.item_size = item_size;
+
+        for (String folder_path : folders_path) {
+            folders.add(new FolderModal(folder_path));
+        }
     }
 
     @NonNull
@@ -75,12 +83,23 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
                 .override(item_size)
                 .into(holder.cover);
 
+        if (selectionOn) {
+            holder.checkBox.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkBox.setVisibility(View.GONE);
+        }
+
+        if (selectedFolders.contains(folder_path)) {
+            holder.checkBox.setChecked(true);
+        } else {
+            holder.checkBox.setChecked(false);
+        }
+
 //        Log.d("DEBUG", folder_name);
 //        Log.d("DEBUG", files_count);
 //        Log.d("DEBUG", folder_path);
 //        Log.d("DEBUG", folder_cover_path);
 //        holder.container.setOnClickListener(e->onFolderClick(folder_path));
-
 
 
         holder.container.setOnClickListener(v -> {
@@ -96,19 +115,31 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 //            }
             Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path);
         });
-//        holder.container.setOnLongClickListener(v -> {
-//            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
-//            return false;
-//        });
+        holder.container.setOnLongClickListener(v -> {
+            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
+            return false;
+        });
     }
+
     @Override
     public int getItemCount() {
         return data.size();
     }
-    public void setSelectedFiles(ArrayList<String> folders_path){
-        this.folders_path = folders_path;
+
+    public FolderModal getItem(Integer position) {
+        return folders.get(position);
+    }
+
+    public void setSelectedFolders(ArrayList<String> paths) {
+        selectedFolders = paths;
         notifyDataSetChanged();
     }
+
+    public void setSelectionOn(Boolean on) {
+        this.selectionOn = on;
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CardView container;
         TextView name;

@@ -49,12 +49,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 //    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
     private boolean selection_on = false;
     private ActionMode action_mode;
-    private Set<String> selected_list = new HashSet<>();
+    private ArrayList<String> selected_list = new ArrayList<>();
     private HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
     //    public Set<Function> folder_adapter_functions = new HashSet<>();
     private HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
     private String current_layout_variant = "TYPE 1";
-
+    FoldersRecyclerViewAdapter folder_adapter;
+    FilesRecyclerViewAdapter files_adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +80,10 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 if (selection_on) {
                     if (selected_list.contains(folder_path)) {
                         selected_list.remove(folder_path);
+                        folder_adapter.setSelectedFolders(selected_list);
                     } else {
                         selected_list.add(folder_path);
+                        folder_adapter.setSelectedFolders(selected_list);
                     }
                     return null;
                 }
@@ -104,6 +107,9 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                     this.selection_on = true;
                     this.selected_list.add(folder_path);
 //                    folders_recyclerView.notifyAll();
+
+                    folder_adapter.setSelectionOn(true);
+                    folder_adapter.setSelectedFolders(selected_list);
                 }
             }
             return null;
@@ -164,33 +170,33 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     private void load_folders_in_recyclerView(HashMap<String, Set<String>> data) {
-        FoldersRecyclerViewAdapter folder_adapter = new FoldersRecyclerViewAdapter(this, data,folder_adapter_functions,item_size);
+        folder_adapter = new FoldersRecyclerViewAdapter(this, data,folder_adapter_functions,item_size);
         folders_recyclerView.setAdapter(folder_adapter);
 
-        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-            @Override
-            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-                return false;
-            }
-
-            @Override
-            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-                switch (e.getAction()){
-//                    case MotionEvent
-                }
-            }
-
-            @Override
-            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-
-            }
-        });
+//        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+//            @Override
+//            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+//                return false;
+//            }
+//
+//            @Override
+//            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
+//                switch (e.getAction()){
+////                    case MotionEvent
+//                }
+//            }
+//
+//            @Override
+//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+//
+//            }
+//        });
     }
 
     private void load_files_in_recyclerView(String folder_path) {
         ArrayList<String> files_path = new ArrayList<>(Objects.requireNonNull(data.get(folder_path)));
 
-        FilesRecyclerViewAdapter files_adapter = new FilesRecyclerViewAdapter(this, files_path,item_size);
+        files_adapter = new FilesRecyclerViewAdapter(this, files_path,item_size);
         files_recyclerView.setAdapter(files_adapter);
     }
 
@@ -212,6 +218,9 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         if (selection_on) {
             this.selection_on = false;
             this.selected_list.clear();
+
+            folder_adapter.setSelectionOn(false);
+            folder_adapter.setSelectedFolders(selected_list);
             return;
         }
         switch (current_layout_variant) {
