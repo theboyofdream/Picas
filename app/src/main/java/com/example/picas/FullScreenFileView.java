@@ -1,33 +1,37 @@
 package com.example.picas;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageView;
+import android.util.Log;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
-import java.io.File;
+import com.example.picas.adapters.FullScreenFilePageViewerAdapter;
+
 import java.util.ArrayList;
 
 public class FullScreenFileView extends AppCompatActivity {
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_full_screen_file_view);
+    FullScreenFilePageViewerAdapter pagerViewAdapter;
 
-    Intent parameters = getIntent();
-    ArrayList<String> files = parameters.getStringArrayListExtra("files");
-    int index = parameters.getIntExtra("index",0);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_full_screen_file_view);
 
-//    ImageView fullScreenView = findViewById(R.id.fullScreenItemView);
-//    Glide.with(this)
-//        .load(new File(files.get(index)))
-//        .apply(RequestOptions.centerInsideTransform())
-//        .into(fullScreenView);
+        Intent parameters = getIntent();
+        ArrayList<String> files = parameters.getStringArrayListExtra("files");
+        int index = parameters.getIntExtra("index", 0);
 
-  }
+//        Log.d("DEBUG 6", String.valueOf(index));
+        ViewPager2 viewPager2 = findViewById(R.id.pager_view);
+        pagerViewAdapter = new FullScreenFilePageViewerAdapter(this, files, index);
+        viewPager2.setAdapter(pagerViewAdapter);
+        viewPager2.setClipToPadding(false);
+        viewPager2.setClipChildren(false);
+        viewPager2.setCurrentItem(index,false);
+
+
+    }
 }

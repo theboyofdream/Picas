@@ -8,17 +8,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -31,7 +29,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Observable;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -42,13 +39,15 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     private RecyclerView folders_recyclerView, files_recyclerView;
     private GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
     private final int maximum_column_count = 4;
-    private int current_column_count = maximum_column_count - 1, folders_column_count = current_column_count, files_column_count = 1;
+    private final int current_column_count = maximum_column_count - 1;
+    private int folders_column_count = current_column_count;
+    private int files_column_count = 1;
     private ActivityMainBinding activityMainBinding;
     private HashMap<String, Set<String>> data;
     private int item_size;
-//    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
+    //    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
     private boolean selection_on = false;
-    private ActionMode action_mode;
+    //    private ActionMode action_mode;
     private ArrayList<String> selected_list = new ArrayList<>();
     private HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
     //    public Set<Function> folder_adapter_functions = new HashSet<>();
@@ -104,8 +103,10 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
             if (current_layout_variant.equals("TYPE 1")) {
                 if (!selection_on) {
-                    this.selection_on = true;
-                    this.selected_list.add(folder_path);
+                    selected_list.clear();
+
+                    selection_on = true;
+                    selected_list.add(folder_path);
 //                    folders_recyclerView.notifyAll();
 
                     folder_adapter.setSelectionOn(true);
@@ -115,13 +116,76 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             return null;
         });
 
-        files_adapter_functions.put("on_file_click", files_path->{
-            Intent intent = new Intent();
-//            startActivity();
+//        files_adapter_functions.put("on_file_click", file_path -> {
+        files_adapter_functions.put("on_file_click", index -> {
+            Integer i = Integer.parseInt(index);
+            String file_path = files_adapter.getFiles().get(i);
+            if (current_layout_variant.equals("TYPE 2")) {
+                if (selection_on) {
+                    if (selected_list.contains(file_path)) {
+                        selected_list.remove(file_path);
+                    } else {
+                        selected_list.add(file_path);
+                    }
+
+                    HashMap<String,Integer> selected_files_count=new HashMap<>();
+                    for(String file:selected_list){
+                        String[] parts = file.split("/");
+                        ArrayList<String> partsArr = new ArrayList<>(Arrays.asList(parts));
+                        partsArr.remove(partsArr.size() - 1);
+
+                        String folder_path = String.join("/",partsArr);
+                        if(selected_files_count.containsKey(folder_path)){
+                            selected_files_count.put(folder_path, selected_files_count.get(folder_path)+1);
+                        }else {
+                            selected_files_count.put(folder_path, 1);
+                        }
+                    }
+//                    Log.d("DEBUG", String.valueOf(selected_files_count));
+                    folder_adapter.setSelectedFileCount(selected_files_count);
+                    files_adapter.setSelectedFiles(selected_list);
+
+                } else {
+//                    Log.d("DEBUG 5",file_path);
+//                    Log.d("DEBUG 5", String.valueOf(i));
+                    Intent intent = new Intent(this, FullScreenFileView.class);
+                    intent.putExtra("files",files_adapter.getFiles());
+                    intent.putExtra("index",i);
+                    startActivity(intent);
+                }
+            }
             return null;
         });
+        files_adapter_functions.put("on_long_press", file_path -> {
+            if (current_layout_variant.equals("TYPE 2")) {
+                if (!selection_on) {
+                    selected_list.clear();
 
+                    selection_on = true;
+                    selected_list.add(file_path);
 
+                    files_adapter.setSelectionOn(true);
+                    files_adapter.setSelectedFiles(selected_list);
+
+                    HashMap<String,Integer> selected_files_count=new HashMap<>();
+                    for(String file:selected_list){
+                        String[] parts = file.split("/");
+                        ArrayList<String> partsArr = new ArrayList<>(Arrays.asList(parts));
+                        partsArr.remove(partsArr.size() - 1);
+
+                        String folder_path = String.join("/",partsArr);
+                        if(selected_files_count.containsKey(folder_path)){
+                            selected_files_count.put(folder_path, selected_files_count.get(folder_path)+1);
+                        }else {
+                            selected_files_count.put(folder_path, 1);
+                        }
+                    }
+//                    Log.d("DEBUG", String.valueOf(selected_files_count));
+                    folder_adapter.setSelectedFileCount(selected_files_count);
+                }
+            }
+            return null;
+        });
 
 
         update_item_size();
@@ -134,12 +198,9 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        int width = metrics.widthPixels;
+        int device_width = metrics.widthPixels;
 
-        this.item_size = width / folders_column_count;
-//        item_size.setValue(width / folders_column_count);
-//        item_size.notifyAll();
-
+        item_size = device_width / folders_column_count;
     }
 
     private void change_layout(String layout_variant) {
@@ -170,33 +231,14 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 
     private void load_folders_in_recyclerView(HashMap<String, Set<String>> data) {
-        folder_adapter = new FoldersRecyclerViewAdapter(this, data,folder_adapter_functions,item_size);
+        folder_adapter = new FoldersRecyclerViewAdapter(this, data, folder_adapter_functions, item_size);
         folders_recyclerView.setAdapter(folder_adapter);
-
-//        folders_recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
-//            @Override
-//            public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void onTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
-//                switch (e.getAction()){
-////                    case MotionEvent
-//                }
-//            }
-//
-//            @Override
-//            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
-//
-//            }
-//        });
     }
 
     private void load_files_in_recyclerView(String folder_path) {
         ArrayList<String> files_path = new ArrayList<>(Objects.requireNonNull(data.get(folder_path)));
 
-        files_adapter = new FilesRecyclerViewAdapter(this, files_path,item_size);
+        files_adapter = new FilesRecyclerViewAdapter(this, files_path, files_adapter_functions, item_size, selection_on, selected_list);
         files_recyclerView.setAdapter(files_adapter);
     }
 
@@ -216,12 +258,24 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     @Override
     public void onBackPressed() {
         if (selection_on) {
-            this.selection_on = false;
-            this.selected_list.clear();
+            selected_list.clear();
+            selection_on = false;
 
-            folder_adapter.setSelectionOn(false);
-            folder_adapter.setSelectedFolders(selected_list);
-            return;
+            switch (current_layout_variant) {
+                case "TYPE 1": {
+                    folder_adapter.setSelectionOn(false);
+                    folder_adapter.setSelectedFolders(selected_list);
+                    return;
+                }
+                case "TYPE 2": {
+                    files_adapter.setSelectionOn(false);
+                    files_adapter.setSelectedFiles(selected_list);
+                    folder_adapter.setSelectedFileCount(new HashMap<>());
+                    return;
+                }
+            }
+
+
         }
         switch (current_layout_variant) {
             case "TYPE 1": {

@@ -1,6 +1,7 @@
 package com.example.picas.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.example.picas.MainActivity;
 import com.example.picas.R;
 import com.example.picas.databinding.FolderViewBinding;
 import com.example.picas.models.FolderModal;
@@ -35,6 +35,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
     private Boolean selectionOn = false;
     HashMap<String, Function<String, Void>> functions;
     int item_size;
+    HashMap<String, Integer> selected_files_count = new HashMap<>();
 
     public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, HashMap<String, Function<String, Void>> functions, int item_size) {
         this.context = context;
@@ -95,6 +96,24 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
             holder.checkBox.setChecked(false);
         }
 
+        if (selected_files_count.containsKey(folder_path)) {
+            int count = selected_files_count.get(folder_path);
+
+//            Log.d("DEBUG 2", folder_path);
+//            Log.d("DEBUG 3", String.valueOf(count));
+            if (count > 0) {
+                holder.selected_files_count.setVisibility(View.VISIBLE);
+                holder.selected_files_count.setText(String.valueOf(count));
+            }
+//            else {
+//                holder.selected_files_count.setText("");
+//                holder.selected_files_count.setVisibility(View.GONE);
+//            }
+        } else {
+            holder.selected_files_count.setVisibility(View.GONE);
+            holder.selected_files_count.setText("");
+        }
+
 //        Log.d("DEBUG", folder_name);
 //        Log.d("DEBUG", files_count);
 //        Log.d("DEBUG", folder_path);
@@ -135,6 +154,12 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
         notifyDataSetChanged();
     }
 
+    public void setSelectedFileCount(HashMap<String, Integer> selected_files_count) {
+        this.selected_files_count = selected_files_count;
+        Log.d("DEBUG FRVA", String.valueOf(selected_files_count));
+        notifyDataSetChanged();
+    }
+
     public void setSelectionOn(Boolean on) {
         this.selectionOn = on;
         notifyDataSetChanged();
@@ -146,6 +171,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
         TextView counts;
         ImageView cover;
         CheckBox checkBox;
+        TextView selected_files_count;
 
         ViewHolder(View view) {
             super(view);
@@ -155,6 +181,7 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
             counts = binding.squareViewFileCount;
             cover = binding.squareImageView;
             checkBox = binding.squareViewCheckBox;
+            selected_files_count = binding.selectedFileCountsTextView;
         }
     }
 }

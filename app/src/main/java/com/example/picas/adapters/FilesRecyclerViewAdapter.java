@@ -1,5 +1,6 @@
 package com.example.picas.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,30 +14,35 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.example.picas.MainActivity;
 import com.example.picas.R;
 import com.example.picas.databinding.FileViewBinding;
-import com.example.picas.models.FileModal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.function.Function;
 
 public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecyclerViewAdapter.ViewHolder> {
-    private Context context;
-    private ArrayList<String> files_path;
-    private ArrayList<FileModal> files = new ArrayList<>();
-//    private ArrayList<FileModal> selectedFiles = new ArrayList<>();
+    final Context context;
+    ArrayList<String> files_path;
+    //    private ArrayList<FileModal> files = new ArrayList<>();
+    //    private ArrayList<FileModal> selectedFiles = new ArrayList<>();
     private ArrayList<String> selectedFiles = new ArrayList<>();
-    private Boolean selectionOn=false;
-    private Integer item_size;
+    private Boolean selectionOn = false;
+    final Integer item_size;
+    HashMap<String, Function<String, Void>> functions;
 
-    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path, int item_size) {
+
+    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path, HashMap<String, Function<String, Void>> functions, int item_size, Boolean selection_on, ArrayList<String> selected_files) {
         this.context = context;
         this.files_path = files_path;
         this.item_size = item_size;
-
-        for (String file_path : files_path) {
-            files.add(new FileModal(file_path));
-        }
+        this.functions = functions;
+        this.selectionOn = selection_on;
+        this.selectedFiles = selected_files;
+//        for (String file_path : files_path) {
+//            files.add(new FileModal(file_path));
+//        }
     }
 
     @NonNull
@@ -51,26 +57,29 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
     @Override
     public void onBindViewHolder(@NonNull FilesRecyclerViewAdapter.ViewHolder holder, int position) {
         int i = holder.getAdapterPosition();
-
+        String file_path = files_path.get(i);
         Glide.with(context)
-                .load(files_path.get(i))
+                .load(file_path)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                .override((int) MainActivity.item_size)
                 .override(item_size)
                 .into(holder.cover);
 
-        if(selectionOn){
+        if (selectionOn) {
             holder.checkBox.setVisibility(View.VISIBLE);
-                    }else{
+        } else {
             holder.checkBox.setVisibility(View.GONE);
         }
 
-        if(selectedFiles.contains(files_path.get(i))){
-            holder.checkBox.setChecked(true);
-        }else{
-            holder.checkBox.setChecked(false);
-        }
+        holder.checkBox.setChecked(selectedFiles.contains(files_path.get(i)));
+
+//        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(file_path));
+        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(String.valueOf(i)));
+        holder.container.setOnLongClickListener(v -> {
+            Objects.requireNonNull(functions.get("on_long_press")).apply(file_path);
+            return false;
+        });
     }
 
     @Override
@@ -78,17 +87,23 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
         return files_path.size();
     }
 
-    public FileModal getItem(Integer position) {
-        return files.get(position);
+//    public FileModal getItem(Integer position) {
+//        return files.get(position);
+//    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setSelectedFiles(ArrayList<String> files_path) {
+        this.selectedFiles = files_path;
+        notifyDataSetChanged();
     }
 
-    public void setSelectedFiles(ArrayList<String> files_path) {
-        this.files_path = files_path;
+    public void setSelectionOn(Boolean on) {
+        this.selectionOn = on;
         notifyDataSetChanged();
     }
-    public void setSelectionOn(Boolean on){
-        this.selectionOn=on;
-        notifyDataSetChanged();
+
+    public ArrayList<String> getFiles() {
+        return files_path;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

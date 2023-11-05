@@ -31,7 +31,7 @@ public class FullScreenFilePageViewerAdapter extends RecyclerView.Adapter<FullSc
     @Override
     public FullScreenFilePageViewerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext( ));
-        View view = inflater.inflate(R.layout.activity_full_screen_file_view, parent, false);
+        View view = inflater.inflate(R.layout.fullscreen_file_view, parent, false);
 
         return new ViewHolder(view);
     }
@@ -43,7 +43,7 @@ public class FullScreenFilePageViewerAdapter extends RecyclerView.Adapter<FullSc
 
         Glide.with(context)
                 .load(files.get(i))
-                .fitCenter()
+//                .fitCenter()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                .override((int) MainActivity.item_size)
                 .into(holder.image);
