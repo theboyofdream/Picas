@@ -9,9 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.ActionMode;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.DragEvent;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +22,7 @@ import com.example.picas.adapters.FilesRecyclerViewAdapter;
 import com.example.picas.adapters.FoldersRecyclerViewAdapter;
 import com.example.picas.databinding.ActivityMainBinding;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,26 +32,20 @@ import java.util.Set;
 import java.util.function.Function;
 
 
-public class MainActivity extends AppCompatActivity implements ActionMode.Callback {
+public class MainActivity extends AppCompatActivity implements View.OnDragListener {
 
-    private final String[] permissions_string = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private RecyclerView folders_recyclerView, files_recyclerView;
-    private GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
-    private final int maximum_column_count = 4;
-    private final int current_column_count = maximum_column_count - 1;
-    private int folders_column_count = current_column_count;
-    private int files_column_count = 1;
-    private ActivityMainBinding activityMainBinding;
-    private HashMap<String, Set<String>> data;
-    private int item_size;
-    //    public static MutableLiveData item_size = new MutableLiveData<Integer>(100);
-    private boolean selection_on = false;
-    //    private ActionMode action_mode;
-    private ArrayList<String> selected_list = new ArrayList<>();
-    private HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
-    //    public Set<Function> folder_adapter_functions = new HashSet<>();
-    private HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
-    private String current_layout_variant = "TYPE 1";
+    final String[] permissions_string = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    RecyclerView folders_recyclerView, files_recyclerView;
+    GridLayoutManager folders_gridLayoutManager, files_gridLayoutManager;
+    final int maximum_column_count = 4;
+    int current_column_count = maximum_column_count - 1,folders_column_count = current_column_count,files_column_count = 1,item_size;
+    ActivityMainBinding activityMainBinding;
+    HashMap<String, Set<String>> data;
+    boolean selection_on = false;
+    ArrayList<String> selected_list = new ArrayList<>();
+    HashMap<String, Function<String, Void>> folder_adapter_functions = new HashMap<>();
+    HashMap<String, Function<String, Void>> files_adapter_functions = new HashMap<>();
+    String current_layout_variant = "TYPE 1";
     FoldersRecyclerViewAdapter folder_adapter;
     FilesRecyclerViewAdapter files_adapter;
 
@@ -72,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         files_recyclerView = activityMainBinding.filesView;
         files_gridLayoutManager = new GridLayoutManager(this, files_column_count);
         files_recyclerView.setLayoutManager(files_gridLayoutManager);
+        files_recyclerView.setOnDragListener(this);
 
         folder_adapter_functions.put("on_folder_click", folder_path -> {
 //            Log.d("DEBUG: on long press", String.valueOf(selection_on));
@@ -116,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             return null;
         });
 
-//        files_adapter_functions.put("on_file_click", file_path -> {
         files_adapter_functions.put("on_file_click", index -> {
             Integer i = Integer.parseInt(index);
             String file_path = files_adapter.getFiles().get(i);
@@ -146,8 +139,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                     files_adapter.setSelectedFiles(selected_list);
 
                 } else {
-//                    Log.d("DEBUG 5",file_path);
-//                    Log.d("DEBUG 5", String.valueOf(i));
+                    // show image in Full Screen View when image is clicked.
                     Intent intent = new Intent(this, FullScreenFileView.class);
                     intent.putExtra("files",files_adapter.getFiles());
                     intent.putExtra("index",i);
@@ -328,23 +320,108 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
         return _data_;
     }
 
+    String fileToMove;
+    int newContactPosition =-1;
+    int currentPosition = -1;
+    boolean isExerciseAdded = false;
+    boolean isFromExercise = false;
     @Override
-    public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+    public boolean onDrag(View view, DragEvent dragEvent) {
+        View selectedView = (View) dragEvent.getLocalState();
+        RecyclerView rcvSelected = (RecyclerView) view;
+
+        Log.d("DEBUG", dragEvent.toString());
+
+
+        try {
+            currentPosition = activityMainBinding.filesView.getChildAdapterPosition(selectedView);
+
+            // Ensure the position is valid.
+            if (currentPosition != -1) {
+                fileToMove = files_adapter.getFiles().get(currentPosition);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        switch (dragEvent.getAction()) {
+            case DragEvent.ACTION_DRAG_LOCATION:
+                Log.d("DEBUG ACTION_DRAG_LOCATION",dragEvent.getX()+" "+dragEvent.getY());
+                View onTopOf = rcvSelected.findChildViewUnder(dragEvent.getX(), dragEvent.getY());
+                newContactPosition = rcvSelected.getChildAdapterPosition(onTopOf);
+                break;
+            case DragEvent.ACTION_DRAG_ENTERED:
+                break;
+            case DragEvent.ACTION_DRAG_EXITED:
+                break;
+            case DragEvent.ACTION_DROP:
+                //when Item is dropped off to recyclerview.
+                if (isFromExercise) {
+                    File file = new File(fileToMove);
+                    String folderPath = file.getParent();
+                    Set<String>files = data.get(folderPath);
+                    files.add(fileToMove);
+//                    exerciseSelectedList.add(fileToMove);
+//                    exerciseList.remove(fileToMove);
+                    activityMainBinding.filesView.getAdapter().notifyItemRemoved(currentPosition);
+//                    activityMainBinding.();
+                }
+                //This is to hide/add the container!
+                /*ViewGroup owner = (ViewGroup) (view.getParent());
+                if (owner != null) {
+                    //owner.removeView(selectedView);
+                    //owner.addView(selectedView);
+
+                    try {
+                        LinearLayout rlContainer = (LinearLayout) view;
+                        rlContainer.addView(selectedView);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //selectedView.setVisibility(View.VISIBLE);
+                }*/
+
+                break;
+
+            case DragEvent.ACTION_DRAG_ENDED:
+                // Reset the visibility for the Contact item's view.
+                // This is done to reset the state in instances where the drag action didn't do anything.
+                selectedView.setVisibility(View.VISIBLE);
+                // Boundary condition, scroll to top is moving list item to position 0.
+                if (newContactPosition != -1) {
+                    rcvSelected.scrollToPosition(newContactPosition);
+                    newContactPosition = -1;
+                } else {
+                    rcvSelected.scrollToPosition(0);
+                }
+            default:
+                break;
+        }
         return false;
-    }
-
-    @Override
-    public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-        return false;
-    }
-
-    @Override
-    public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-        return false;
-    }
-
-    @Override
-    public void onDestroyActionMode(ActionMode mode) {
-
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

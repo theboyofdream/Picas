@@ -20,7 +20,7 @@
 <!--            android:name=".Gestures"-->
 <!--            android:exported="false" /> -->
         <activity
-            android:name=".Gestures"
+            android:name=".trash.Gestures"
             android:exported="false" />
         <activity
             android:name=".FullScreenFileView"

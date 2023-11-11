@@ -1,6 +1,5 @@
 package com.example.picas.adapters;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,13 +22,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecyclerViewAdapter.ViewHolder> {
-    final Context context;
+    Context context;
     ArrayList<String> files_path;
-    //    private ArrayList<FileModal> files = new ArrayList<>();
-    //    private ArrayList<FileModal> selectedFiles = new ArrayList<>();
-    private ArrayList<String> selectedFiles = new ArrayList<>();
-    private Boolean selectionOn = false;
-    final Integer item_size;
+    ArrayList<String> selectedFiles;
+    Boolean selectionOn;
+    Integer item_size;
     HashMap<String, Function<String, Void>> functions;
 
 
@@ -40,9 +37,6 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
         this.functions = functions;
         this.selectionOn = selection_on;
         this.selectedFiles = selected_files;
-//        for (String file_path : files_path) {
-//            files.add(new FileModal(file_path));
-//        }
     }
 
     @NonNull
@@ -74,29 +68,22 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 
         holder.checkBox.setChecked(selectedFiles.contains(files_path.get(i)));
 
-//        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(file_path));
         holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(String.valueOf(i)));
         holder.container.setOnLongClickListener(v -> {
             Objects.requireNonNull(functions.get("on_long_press")).apply(file_path);
             return false;
         });
     }
-
     @Override
     public int getItemCount() {
         return files_path.size();
     }
 
-//    public FileModal getItem(Integer position) {
-//        return files.get(position);
-//    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void setSelectedFiles(ArrayList<String> files_path) {
-        this.selectedFiles = files_path;
+//    @SuppressLint("NotifyDataSetChanged")
+    public void setSelectedFiles(ArrayList<String> selectedFiles) {
+        this.selectedFiles = selectedFiles;
         notifyDataSetChanged();
     }
-
     public void setSelectionOn(Boolean on) {
         this.selectionOn = on;
         notifyDataSetChanged();

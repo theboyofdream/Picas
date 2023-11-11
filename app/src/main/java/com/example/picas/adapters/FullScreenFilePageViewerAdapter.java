@@ -11,20 +11,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.example.picas.MainActivity;
 import com.example.picas.R;
 
 import java.util.ArrayList;
 
 public class FullScreenFilePageViewerAdapter extends RecyclerView.Adapter<FullScreenFilePageViewerAdapter.ViewHolder> {
-    private ArrayList<String> files;
-    private int current_item_position;
-    private Context context;
+    private final ArrayList<String> files;
+    private final Context context;
 
-    public FullScreenFilePageViewerAdapter(Context context, ArrayList<String> files, int position) {
+    public FullScreenFilePageViewerAdapter(Context context, ArrayList<String> files) {
         this.context = context;
         this.files = files;
-        this.current_item_position = position;
     }
 
     @NonNull
@@ -36,7 +33,6 @@ public class FullScreenFilePageViewerAdapter extends RecyclerView.Adapter<FullSc
         return new ViewHolder(view);
     }
 
-    @NonNull
     @Override
     public void onBindViewHolder(FullScreenFilePageViewerAdapter.ViewHolder holder, int position) {
         int i = holder.getAdapterPosition();

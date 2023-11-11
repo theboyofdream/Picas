@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Gestures">
+    tools:context=".trash.Gestures">
 
     <TextView
         android:id="@+id/gesture_log_textView"

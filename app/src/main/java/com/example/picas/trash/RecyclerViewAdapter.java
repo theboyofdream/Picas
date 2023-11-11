@@ -1,4 +1,4 @@
-package com.example.picas;
+package com.example.picas.trash;
 
 
 import android.content.Context;
@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.picas.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;

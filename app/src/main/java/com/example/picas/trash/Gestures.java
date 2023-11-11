@@ -1,4 +1,4 @@
-package com.example.picas;
+package com.example.picas.trash;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
