@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.example.picas.Listeners;
 import com.example.picas.R;
 import com.example.picas.databinding.FolderViewBinding;
 import com.example.picas.models.FolderModal;
@@ -36,12 +37,13 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
     HashMap<String, Function<String, Void>> functions;
     int item_size;
     HashMap<String, Integer> selected_files_count = new HashMap<>();
+    FolderListeners listeners;
 
-    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, HashMap<String, Function<String, Void>> functions, int item_size) {
+    public FoldersRecyclerViewAdapter(Context context, HashMap<String, Set<String>> data, int item_size) {
         this.context = context;
         this.data = data;
         this.folders_path = new ArrayList<>(data.keySet());
-        this.functions = functions;
+//        this.functions = functions;
         this.item_size = item_size;
 
         for (String folder_path : folders_path) {
@@ -83,12 +85,12 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
                 .override(item_size)
                 .into(holder.cover);
 
-        if (selectionOn) {
-            holder.checkBox.setVisibility(View.VISIBLE);
-        } else {
-            holder.checkBox.setVisibility(View.GONE);
-        }
-
+//        if (selectionOn) {
+//            holder.checkBox.setVisibility(View.VISIBLE);
+//        } else {
+//            holder.checkBox.setVisibility(View.GONE);
+//        }
+        holder.checkBox.setVisibility(selectionOn?View.VISIBLE:View.INVISIBLE);
         holder.checkBox.setChecked(selectedFolders.contains(folder_path));
 
         if (selected_files_count.containsKey(folder_path)) {
@@ -98,16 +100,35 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
                 holder.selected_files_count.setText(String.valueOf(count));
             }
         } else {
-            holder.selected_files_count.setVisibility(View.GONE);
+            holder.selected_files_count.setVisibility(View.INVISIBLE);
             holder.selected_files_count.setText("");
         }
 
-
-        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path));
-        holder.container.setOnLongClickListener(v -> {
-            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
-            return false;
+        holder.container.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(listeners!=null){
+                    listeners.onClick(folder_path);
+                }
+            }
         });
+
+        holder.container.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(listeners!=null){
+                    listeners.onLongClick(folder_path);
+                }
+                return true;
+            }
+        });
+
+
+//        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_folder_click")).apply(folder_path));
+//        holder.container.setOnLongClickListener(v -> {
+//            Objects.requireNonNull(functions.get("on_long_press")).apply(folder_path);
+//            return false;
+//        });
     }
 
     @Override
@@ -117,17 +138,23 @@ public class FoldersRecyclerViewAdapter extends RecyclerView.Adapter<FoldersRecy
 
     public void setSelectedFolders(ArrayList<String> paths) {
         selectedFolders = paths;
-        notifyDataSetChanged();
     }
-
     public void setSelectedFileCount(HashMap<String, Integer> selected_files_count) {
         this.selected_files_count = selected_files_count;
+    }
+    public void setSelectionOn(Boolean on) {
+        this.selectionOn = on;
+    }
+    public void setListeners(FolderListeners listeners){
+        this.listeners = listeners;
+    }
+    public void update(){
         notifyDataSetChanged();
     }
 
-    public void setSelectionOn(Boolean on) {
-        this.selectionOn = on;
-//        notifyDataSetChanged();
+    public interface FolderListeners{
+        default  void onClick(String folderPath){}
+        default  void onLongClick(String folderPath){}
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

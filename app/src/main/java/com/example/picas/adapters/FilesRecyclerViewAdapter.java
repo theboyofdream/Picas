@@ -27,16 +27,16 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
     ArrayList<String> selectedFiles;
     Boolean selectionOn;
     Integer item_size;
-    HashMap<String, Function<String, Void>> functions;
+//    HashMap<String, Function<String, Void>> functions;
+    FileListener listener;
 
-
-    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path, HashMap<String, Function<String, Void>> functions, int item_size, Boolean selection_on, ArrayList<String> selected_files) {
+    public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path,  int item_size) {
         this.context = context;
         this.files_path = files_path;
         this.item_size = item_size;
-        this.functions = functions;
-        this.selectionOn = selection_on;
-        this.selectedFiles = selected_files;
+//        this.functions = functions;
+//        this.selectionOn = selection_on;
+//        this.selectedFiles = selected_files;
     }
 
     @NonNull
@@ -60,19 +60,36 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
                 .override(item_size)
                 .into(holder.cover);
 
-        if (selectionOn) {
-            holder.checkBox.setVisibility(View.VISIBLE);
-        } else {
-            holder.checkBox.setVisibility(View.GONE);
-        }
-
+//        if (selectionOn) {
+//            holder.checkBox.setVisibility(View.VISIBLE);
+//        } else {
+//            holder.checkBox.setVisibility(View.GONE);
+//        }
+        holder.checkBox.setVisibility(selectionOn?View.VISIBLE:View.INVISIBLE);
         holder.checkBox.setChecked(selectedFiles.contains(files_path.get(i)));
 
-        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(String.valueOf(i)));
-        holder.container.setOnLongClickListener(v -> {
-            Objects.requireNonNull(functions.get("on_long_press")).apply(file_path);
-            return false;
+        holder.container.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(listener!=null){
+                    listener.onClick(i, file_path);
+                }
+            }
         });
+        holder.container.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(listener!=null){
+                    listener.onLongClick(i, file_path);
+                }
+                return false;
+            }
+        });
+//        holder.container.setOnClickListener(v -> Objects.requireNonNull(functions.get("on_file_click")).apply(String.valueOf(i)));
+//        holder.container.setOnLongClickListener(v -> {
+//            Objects.requireNonNull(functions.get("on_long_press")).apply(file_path);
+//            return false;
+//        });
     }
     @Override
     public int getItemCount() {
@@ -82,12 +99,19 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 //    @SuppressLint("NotifyDataSetChanged")
     public void setSelectedFiles(ArrayList<String> selectedFiles) {
         this.selectedFiles = selectedFiles;
-        notifyDataSetChanged();
+//        notifyDataSetChanged();
     }
     public void setSelectionOn(Boolean on) {
         this.selectionOn = on;
+//        notifyDataSetChanged();
+    }
+    public  void setListener(FileListener listener){
+        this.listener = listener;
+    }
+    public void update(){
         notifyDataSetChanged();
     }
+
 
     public ArrayList<String> getFiles() {
         return files_path;
@@ -105,6 +129,11 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
             cover = binding.squareImageView;
             checkBox = binding.squareViewCheckBox;
         }
+    }
+
+    public interface FileListener{
+        default void onClick(int position, String filePath){}
+        default void onLongClick(int position, String filePath){}
     }
 }
 
