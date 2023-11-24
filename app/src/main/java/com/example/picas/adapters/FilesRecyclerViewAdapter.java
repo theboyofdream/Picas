@@ -1,6 +1,7 @@
 package com.example.picas.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,47 +18,46 @@ import com.example.picas.R;
 import com.example.picas.databinding.FileViewBinding;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.function.Function;
 
 public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecyclerViewAdapter.ViewHolder> {
     Context context;
-    ArrayList<String> files_path;
+    ArrayList<String> filesPath;
     ArrayList<String> selectedFiles;
     Boolean selectionOn;
-    Integer item_size;
+    Integer itemSize;
 //    HashMap<String, Function<String, Void>> functions;
     FileListener listener;
 
     public FilesRecyclerViewAdapter(Context context, ArrayList<String> files_path,  int item_size) {
         this.context = context;
-        this.files_path = files_path;
-        this.item_size = item_size;
+        this.filesPath = files_path;
+        this.itemSize = item_size;
 //        this.functions = functions;
 //        this.selectionOn = selection_on;
 //        this.selectedFiles = selected_files;
+        Log.d("DEBUG", "1");
     }
 
     @NonNull
     @Override
     public FilesRecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.file_view, parent, false);
-
+        View view = inflater.inflate(R.layout.file_view, parent, true);
+//        Log.d("DEBUG", "2");
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull FilesRecyclerViewAdapter.ViewHolder holder, int position) {
+        Log.d("DEBUG", "3");
         int i = holder.getAdapterPosition();
-        String file_path = files_path.get(i);
+        String file_path = filesPath.get(i);
         Glide.with(context)
                 .load(file_path)
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                .override((int) MainActivity.item_size)
-                .override(item_size)
+                .override(itemSize)
                 .into(holder.cover);
 
 //        if (selectionOn) {
@@ -66,7 +66,7 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 //            holder.checkBox.setVisibility(View.GONE);
 //        }
         holder.checkBox.setVisibility(selectionOn?View.VISIBLE:View.INVISIBLE);
-        holder.checkBox.setChecked(selectedFiles.contains(files_path.get(i)));
+        holder.checkBox.setChecked(selectedFiles.contains(filesPath.get(i)));
 
         holder.container.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,20 +90,19 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 //            Objects.requireNonNull(functions.get("on_long_press")).apply(file_path);
 //            return false;
 //        });
+        Log.d("DEBUG", "5");
     }
     @Override
     public int getItemCount() {
-        return files_path.size();
+        return filesPath.size();
     }
 
 //    @SuppressLint("NotifyDataSetChanged")
     public void setSelectedFiles(ArrayList<String> selectedFiles) {
         this.selectedFiles = selectedFiles;
-//        notifyDataSetChanged();
     }
     public void setSelectionOn(Boolean on) {
         this.selectionOn = on;
-//        notifyDataSetChanged();
     }
     public  void setListener(FileListener listener){
         this.listener = listener;
@@ -114,7 +113,7 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 
 
     public ArrayList<String> getFiles() {
-        return files_path;
+        return filesPath;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -124,10 +123,15 @@ public class FilesRecyclerViewAdapter extends RecyclerView.Adapter<FilesRecycler
 
         ViewHolder(View view) {
             super(view);
-            FileViewBinding binding = FileViewBinding.bind(view);
-            container = binding.squareViewCard;
-            cover = binding.squareImageView;
-            checkBox = binding.squareViewCheckBox;
+
+//            FileViewBinding binding = FileViewBinding.bind(view);
+//            container = binding.squareViewCard;
+//            cover = binding.squareImageView;
+//            checkBox = binding.squareViewCheckBox;
+            container = view.findViewById(R.id.square_view_card);
+            cover = view.findViewById(R.id.square_image_view);
+            checkBox = view.findViewById(R.id.square_view_checkBox);
+//            Log.d("DEBUG","555");
         }
     }
 
